@@ -125,6 +125,9 @@ const FilterComponent: React.FC<FilterProps> = ({ setFilteredVehicles }) => {
 
   return (
     <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <h1 className="text-2xl font-bold mb-1 text-center col-span-full">
+        Transjakarta Armada Management
+      </h1>
       <div>
         <label className="block mb-1 font-medium">Filter Rute:</label>
         <AsyncPaginate
@@ -151,12 +154,26 @@ const FilterComponent: React.FC<FilterProps> = ({ setFilteredVehicles }) => {
 
       <button
         onClick={handleResetFilters}
-        className="w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded mt-2 sm:mt-0"
+        className="col-span-full w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded-md mt-2 sm:mt-0 transform transition-all duration-200 ease-in-out hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
       >
         Reset Filters
       </button>
 
-      <ToastContainer position="top-right" autoClose={2000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={true}
+        newestOnTop
+        closeButton={false}
+        pauseOnHover
+        draggable
+        theme="colored"
+        className="max-w-xs p-2 space-y-2"
+        toastClassName="bg-indigo-600 text-white rounded-lg shadow-md p-3 flex items-center space-x-3 transform transition-transform duration-300 ease-in-out"
+        bodyClassName="text-white text-sm font-medium"
+        progressClassName="bg-indigo-800"
+        limit={3}
+      />
     </div>
   );
 };

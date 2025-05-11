@@ -4,6 +4,8 @@ import VehicleCard from "./components/VehicleCard.tsx";
 import VehicleDetailModal from "./components/VehicleDetailModal.tsx";
 import FilterComponent from "./components/Filter.tsx";
 import Pagination from "./components/Pagination.tsx";
+import LoadingSpinner from "./components/LoadingSpinner.tsx";
+import ErrorMessage from "./components/ErrorMessage.tsx";
 
 const App: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -32,29 +34,21 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">
-        Transjakarta Armada Management
-      </h1>
-
+    <div className="min-h-screen p-6 bg-gradient-to-br from-white via-blue-50 to-indigo-100">
       <FilterComponent setFilteredVehicles={setFilteredVehicles} />
-
-      {loading && <div className="text-blue-500">Loading...</div>}
-      {error && <div className="text-red-500">{error}</div>}
-
+      {loading && <LoadingSpinner />}
+      {error && <ErrorMessage message={error} />}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {paginatedVehicles.map(v => (
           <VehicleCard key={v.id} vehicle={v} onClick={setSelectedVehicle} />
         ))}
       </div>
-
       <Pagination
         totalItems={filteredVehicles.length}
         onPageDataChange={(start, end) => {
           setPaginatedVehicles(filteredVehicles.slice(start, end));
         }}
       />
-
       <VehicleDetailModal
         vehicle={selectedVehicle}
         onClose={() => setSelectedVehicle(null)}

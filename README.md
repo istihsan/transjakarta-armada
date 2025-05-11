@@ -1,6 +1,6 @@
 # Transjakarta Armada Management App
 
-Aplikasi ini adalah sistem manajemen armada yang menampilkan data kendaraan secara real-time. Dibangun menggunakan React + TypeScript dengan TailwindCSS, aplikasi ini mendukung fitur filter data, detail kendaraan, dan pagination.
+Aplikasi ini adalah sistem manajemen armada yang menampilkan data kendaraan secara real-time. Aplikasi ini memiliki kebutuhan sebagai berikut : Mengambil data kendaraan melalui REST API, Menampilkan data kendaraan dalam bentuk Card dan memiliki pagination, Menyediakan filter kendaraan berdasarkan Rute dan Trip, Menampilkan detail dari kendaraan. Aplikasi ini dibuat menggunakan React + TypeScript dengan TailwindCSS.
 
 ## Cara Menjalankan Aplikasi
 
@@ -40,7 +40,15 @@ Aplikasi ini memiliki struktur komponen yang modular dan terpisah berdasarkan ta
   Komponen filter menggunakan AsyncSelect untuk menyaring data berdasarkan `route_id` dan `trip_id`.
 
 - **`components/Pagination.tsx`**  
-  Mengelola pembagian data berdasarkan jumlah per halaman dan navigasi halaman.
+   Mengelola pembagian data berdasarkan jumlah per halaman dan navigasi halaman.
+
+- **`components/ErrorMessage.tsx`**
+  Menampilkan pesan error kepada pengguna.
+
+- **`components/LoadingSpinner.tsx`**
+  Petunjuk visual bahwa data sedang dimuat
+- **`types/Option.ts`**  
+   Berisi struktur definisi item opsi, yang dapat digunakan dalam dropdown, select, dan komponen lainnya.
 
 - **`types/Vehicle.ts`**  
   Berisi definisi tipe data kendaraan untuk TypeScript.
@@ -50,13 +58,14 @@ Aplikasi ini memiliki struktur komponen yang modular dan terpisah berdasarkan ta
 Data kendaraan diambil dari API MBTA (Massachusetts Bay Transportation Authority):
 
 ```
-https://api-v3.mbta.com/vehicles
+https://api-v3.mbta.com/
 ```
 
 ## Teknologi
 
 - React + TypeScript
 - TailwindCSS
-- React Select (Async)
+- React Select (AsyncPaginate)
 - Fetch API
 - Leaflet (Map Support)
+- React Toastify

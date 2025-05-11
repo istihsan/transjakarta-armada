@@ -20,37 +20,67 @@ interface Props {
 const VehicleDetailModal: React.FC<Props> = ({ vehicle, onClose }) => {
   if (!vehicle) return null;
 
-  const { label, current_status, latitude, longitude, updated_at } =
+  const { label, current_status, latitude, longitude, updated_at, revenue } =
     vehicle.attributes;
   const routeId = vehicle.relationships.route.data?.id;
   const tripId = vehicle.relationships.trip.data?.id;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded max-w-md w-full relative">
-        <h2 className="text-xl font-bold mb-4">Detail Kendaraan</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+      <div className="bg-white p-6 rounded-xl max-w-lg w-full relative shadow-lg">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Detail Kendaraan
+        </h2>
 
-        <p>
-          <strong>Label:</strong> {label}
-        </p>
-        <p>
-          <strong>Status:</strong> {current_status}
-        </p>
-        <p>
-          <strong>Latitude:</strong> {latitude}
-        </p>
-        <p>
-          <strong>Longitude:</strong> {longitude}
-        </p>
-        <p>
-          <strong>Updated:</strong> {new Date(updated_at).toLocaleString()}
-        </p>
-        <p>
-          <strong>Route:</strong> {routeId}
-        </p>
-        <p>
-          <strong>Trip:</strong> {tripId}
-        </p>
+        <div className="space-y-2">
+          <p>
+            <strong className="font-bold text-lg text-blue-800">{label}</strong>{" "}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Status:</strong>{" "}
+            {current_status === "STOPPED_AT" ? (
+              <span className="text-red-500 font-bold">Stopped</span>
+            ) : current_status === "IN_TRANSIT_TO" ? (
+              <span className="text-green-500 font-bold">In Transit</span>
+            ) : current_status === "INCOMING_AT" ? (
+              <span className="text-blue-500 font-bold">Incoming</span>
+            ) : (
+              current_status
+            )}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">
+              Accepting Passengers:
+            </strong>{" "}
+            {revenue === "REVENUE" ? (
+              <span className="text-green-500 font-bold">Yes</span>
+            ) : revenue === "NON_REVENUE" ? (
+              <span className="text-red-500 font-bold">No</span>
+            ) : (
+              revenue
+            )}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Latitude:</strong>{" "}
+            {latitude}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Longitude:</strong>{" "}
+            {longitude}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Updated:</strong>{" "}
+            {new Date(updated_at).toLocaleString()}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Route:</strong>{" "}
+            {routeId}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Trip:</strong>{" "}
+            {tripId}
+          </p>
+        </div>
 
         <div className="mt-4 h-64 w-full">
           <MapContainer
@@ -72,7 +102,7 @@ const VehicleDetailModal: React.FC<Props> = ({ vehicle, onClose }) => {
         </div>
 
         <button
-          className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+          className="mt-6 px-6 py-3 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-300 ease-in-out"
           onClick={onClose}
         >
           Tutup
