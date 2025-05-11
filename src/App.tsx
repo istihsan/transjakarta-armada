@@ -37,10 +37,7 @@ const App: React.FC = () => {
         Transjakarta Armada Management
       </h1>
 
-      <FilterComponent
-        vehicles={vehicles}
-        setFilteredVehicles={setFilteredVehicles}
-      />
+      <FilterComponent setFilteredVehicles={setFilteredVehicles} />
 
       {loading && <div className="text-blue-500">Loading...</div>}
       {error && <div className="text-red-500">{error}</div>}

@@ -1,109 +1,157 @@
-import React, { useState, useEffect } from "react";
-import AsyncSelect from "react-select/async";
-import { toast, ToastContainer } from "react-toastify";
+import React, { useEffect, useState } from "react";
+import { AsyncPaginate } from "react-select-async-paginate";
+import { ToastContainer, toast } from "react-toastify";
 import { Vehicle } from "../types/Vehicle";
-import { OptionType } from "../types/Option";
 
-interface FilterComponentProps {
-  vehicles: Vehicle[];
-  setFilteredVehicles: (filteredVehicles: Vehicle[]) => void;
+export type OptionType = {
+  label: string;
+  value: string;
+};
+
+interface FilterProps {
+  setFilteredVehicles: (vehicles: Vehicle[]) => void;
 }
 
-const FilterComponent: React.FC<FilterComponentProps> = ({
-  vehicles,
-  setFilteredVehicles
-}) => {
+const FilterComponent: React.FC<FilterProps> = ({ setFilteredVehicles }) => {
   const [selectedRoutes, setSelectedRoutes] = useState<OptionType[]>([]);
   const [selectedTrips, setSelectedTrips] = useState<OptionType[]>([]);
 
-  const loadRoutes = async (inputValue: string) => {
-    const res = await fetch(
-      `https://api-v3.mbta.com/routes?fields%5Broute%5D=long_name`
-    );
-    const data = await res.json();
-    return data.data.map((item: any) => ({
-      value: item.id,
-      label: item.attributes.long_name
-    }));
+  const loadRoutes = async (
+    inputValue: string,
+    loadedOptions: OptionType[],
+    { page }: any
+  ) => {
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    try {
+      const res = await fetch(
+        `https://api-v3.mbta.com/routes?sort=long_name&page[limit]=${limit}&page[offset]=${offset}&fields[route]=long_name`
+      );
+      const data = await res.json();
+
+      const options: OptionType[] = data.data.map((route: any) => ({
+        label: route.attributes.long_name,
+        value: route.id
+      }));
+
+      const hasMore = data.data.length === limit;
+
+      return {
+        options,
+        hasMore,
+        additional: { page: page + 1 }
+      };
+    } catch (error) {
+      console.error("Error loading routes:", error);
+      return { options: [], hasMore: false, additional: { page: page + 1 } };
+    }
   };
 
-  const loadTrips = async () => {
-    const res = await fetch(
-      "https://api-v3.mbta.com/vehicles?fields%5Bvehicle%5D=trip"
-    );
-    const data = await res.json();
+  const loadTrips = async (
+    inputValue: string,
+    loadedOptions: OptionType[],
+    { page }: any
+  ) => {
+    const limit = 20;
+    const offset = (page - 1) * limit;
 
-    const tripIds = Array.from(
-      new Set(
-        data.data
-          .map((vehicle: any) => vehicle.relationships.trip?.data?.id)
-          .filter((id: string | undefined): id is string => !!id)
-      )
-    );
+    try {
+      const res = await fetch(
+        `https://api-v3.mbta.com/vehicles?page[limit]=${limit}&page[offset]=${offset}&fields[vehicle]=trip`
+      );
+      const data = await res.json();
 
-    return tripIds.map(id => ({ value: id, label: id }));
+      const newTrips: OptionType[] = [];
+      const seen = new Set(loadedOptions.map(o => o.value));
+
+      data.data.forEach((vehicle: any) => {
+        const tripId = vehicle.relationships?.trip?.data?.id;
+        if (tripId && !seen.has(tripId)) {
+          seen.add(tripId);
+          newTrips.push({ label: tripId, value: tripId });
+        }
+      });
+
+      const hasMore = data.data.length === limit;
+
+      return {
+        options: newTrips,
+        hasMore,
+        additional: { page: page + 1 }
+      };
+    } catch (error) {
+      console.error("Error loading trips:", error);
+      return { options: [], hasMore: false, additional: { page: page + 1 } };
+    }
   };
 
-  const filterVehicles = () => {
-    const filtered = vehicles.filter(vehicle => {
-      const routeMatch =
-        selectedRoutes.length === 0 ||
-        selectedRoutes.some(
-          route => vehicle.relationships.route?.data?.id === route.value
+  const fetchFilteredVehicles = async () => {
+    try {
+      const routeParams = selectedRoutes
+        .map(r => `filter[route]=${r.value}`)
+        .join("&");
+      const tripIds = selectedTrips.map(t => t.value);
+
+      let url = `https://api-v3.mbta.com/vehicles?include=trip,route`;
+      if (selectedRoutes.length > 0) url += `&${routeParams}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      let vehicles = data.data as Vehicle[];
+      if (selectedTrips.length > 0) {
+        vehicles = vehicles.filter(vehicle =>
+          tripIds.includes(vehicle.relationships?.trip?.data?.id || "")
         );
+      }
 
-      const tripMatch =
-        selectedTrips.length === 0 ||
-        selectedTrips.some(
-          trip => vehicle.relationships.trip?.data?.id === trip.value
-        );
-
-      return routeMatch && tripMatch;
-    });
-
-    setFilteredVehicles(filtered);
+      setFilteredVehicles(vehicles);
+    } catch (error) {
+      console.error("Error fetching filtered vehicles:", error);
+    }
   };
+
+  useEffect(() => {
+    fetchFilteredVehicles();
+  }, [selectedRoutes, selectedTrips]);
 
   const handleResetFilters = () => {
     setSelectedRoutes([]);
     setSelectedTrips([]);
-    toast.info("Filters have been reset");
-    filterVehicles();
+    fetchFilteredVehicles();
+    toast.info("Filter telah direset");
   };
-
-  useEffect(() => {
-    filterVehicles();
-  }, [selectedRoutes, selectedTrips, vehicles]);
 
   return (
     <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label className="block mb-1 font-medium">Filter Rute:</label>
-        <AsyncSelect
-          cacheOptions
+        <AsyncPaginate
           isMulti
-          loadOptions={loadRoutes}
-          onChange={selected => setSelectedRoutes(selected as OptionType[])}
           value={selectedRoutes}
-          defaultOptions
+          loadOptions={loadRoutes}
+          onChange={setSelectedRoutes}
+          additional={{ page: 1 }}
+          isSearchable={false}
         />
       </div>
 
       <div>
         <label className="block mb-1 font-medium">Filter Trip:</label>
-        <AsyncSelect
-          cacheOptions
+        <AsyncPaginate
           isMulti
-          loadOptions={loadTrips}
-          onChange={selected => setSelectedTrips(selected as OptionType[])}
           value={selectedTrips}
-          defaultOptions
+          loadOptions={loadTrips}
+          onChange={setSelectedTrips}
+          additional={{ page: 1 }}
+          isSearchable={false}
         />
       </div>
 
       <button
         onClick={handleResetFilters}
-        className="w-full sm:col-span-2 bg-red-500 text-white px-4 py-2 rounded mt-2 sm:mt-0"
+        className="w-full sm:w-auto bg-red-500 text-white px-4 py-2 rounded mt-2 sm:mt-0"
       >
         Reset Filters
       </button>
